@@ -1,8 +1,8 @@
-import { db } from '@/services/firebaseConfig';
+
+import { useMangaDetailsStore } from '@/store/useMangaDetailsStore';
 import { Link } from 'expo-router';
-import { collection, doc, getDocs, query, where } from 'firebase/firestore';
 import React from 'react'
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image, StyleSheet, Text, View } from 'react-native'
 
 type CardProps = {
     id: string;
@@ -10,9 +10,23 @@ type CardProps = {
     purchasedVolumes: number;
     totalVolumes: number;
     imageUrl: string;
+    bannerImgUrl: string;
 };
 
-export default function MangaCard({ id, title, purchasedVolumes, totalVolumes, imageUrl } : CardProps) {
+export default function MangaCard({ id, title, purchasedVolumes, totalVolumes, imageUrl, bannerImgUrl } : CardProps) {
+
+    const { setMangaData } = useMangaDetailsStore()
+
+    const handleSelectedMangaData = () => {  
+        setMangaData({
+            id,
+            title,
+            purchasedVolumes,
+            totalVolumes,
+            coverImageUrl: imageUrl,
+            bannerImgUrl,
+        })
+    }
 
     return (
         <Link
@@ -20,11 +34,9 @@ export default function MangaCard({ id, title, purchasedVolumes, totalVolumes, i
             pathname: '/details/[id]',
             params: { 
                 id,
-                title,
-                purchasedVolumes,
-                totalVolumes 
             },
         }}
+        onPress={handleSelectedMangaData}
         >
                 <View style={styles.card}>
                     {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}

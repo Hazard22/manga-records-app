@@ -11,8 +11,8 @@ export default function MangaVolumeCardSkeleton() {
 
 const styles = StyleSheet.create({
     skeletonCard: {
-        width: 160,
-        height: 200,
+        width: 130,
+        height: 180,
         borderRadius: 8,
         backgroundColor: '#e0e0e0', 
         overflow: 'hidden',

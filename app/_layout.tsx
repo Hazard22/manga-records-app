@@ -15,7 +15,11 @@ export default function RootLayout() {
 
   return (
     <PaperProvider theme={paperTheme}>
-        <Stack>
+        <Stack
+        screenOptions={{
+          headerShown: false
+        }}
+        >
           <Stack.Screen name="(home)" />
         </Stack>
     </PaperProvider>

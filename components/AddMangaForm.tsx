@@ -1,4 +1,5 @@
 import { db } from '@/services/firebaseConfig';
+import { useMangaStore } from '@/store/useMangaStore';
 import { addDoc, collection } from 'firebase/firestore';
 import React, { Dispatch, SetStateAction, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
@@ -10,19 +11,20 @@ interface Manga {
     purchasedVolumes: number;
     totalVolumes: number;
     coverImageUrl: string;
+    bannerImgUrl: string;
   }
 
 type ModalProps = {
     visible: boolean,
     setVisible: Dispatch<SetStateAction<boolean>>;
-    mangaData: Manga[] | null;
-    setMangaData: Dispatch<SetStateAction<Manga[] | null>>;
 }
 
-export default function AddMangaForm({ visible, setVisible, mangaData, setMangaData } : ModalProps ) {
+export default function AddMangaForm({ visible, setVisible } : ModalProps ) {
 
+    const { addManga } = useMangaStore()
     const [title, setTitle] = useState("")
     const [coverImageUrl, setCoverImageUrl] = useState("")
+    const [bannerImgUrl, setBannerImgUrl] = useState("")
     const [creating, setCreating] = useState<boolean>(false)
     
 
@@ -37,10 +39,11 @@ export default function AddMangaForm({ visible, setVisible, mangaData, setMangaD
                 id: docRef.id,
                 title,
                 coverImageUrl,
+                bannerImgUrl,
                 purchasedVolumes: 0,
                 totalVolumes: 0
             }
-            setMangaData([...mangaData, newManga])
+            addManga(newManga)
         } catch (error) {
             console.log(error);
         }
@@ -70,6 +73,13 @@ export default function AddMangaForm({ visible, setVisible, mangaData, setMangaD
                     onChangeText={text => setCoverImageUrl(text)}
                     style={styles.input}
                     />
+                    <TextInput
+                    label="URL de banner"
+                    value={bannerImgUrl}
+                    keyboardType='url'
+                    onChangeText={text => setBannerImgUrl(text)}
+                    style={styles.input}
+                    />
                     <Button 
                     icon="book-plus" 
                     mode="contained" 
@@ -86,6 +96,7 @@ export default function AddMangaForm({ visible, setVisible, mangaData, setMangaD
 
 const styles = StyleSheet.create({
     content: {
+        backgroundColor: 'rgb(77, 67, 87)',
         borderRadius: 10,
         padding: 20,
         width: '80%',
@@ -98,6 +109,7 @@ const styles = StyleSheet.create({
         width: "90%", 
     },
     formTitle: {
+        color: 'white',
         fontSize: 32,
         marginBottom: 15,
     },

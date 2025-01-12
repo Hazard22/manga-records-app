@@ -7,6 +7,7 @@ import { FAB } from 'react-native-paper';
 import { db } from '@/services/firebaseConfig';
 import { GestureHandlerRootView, RefreshControl } from 'react-native-gesture-handler';
 import AddMangaForm from '@/components/AddMangaForm';
+import { useMangaStore } from '@/store/useMangaStore';
 
 interface Manga {
   id: string;
@@ -14,11 +15,14 @@ interface Manga {
   purchasedVolumes: number;
   totalVolumes: number;
   coverImageUrl: string;
+  bannerImgUrl: string;
 }
 
 export default function HomeScreen() {
 
-  const [mangaData, setMangaData] = useState<Manga[] | null>(null);
+  const { mangas, setMangaData } = useMangaStore()
+
+  //const [mangaData, setMangaData] = useState<Manga[] | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false)
   const [addMangaFormVisible, setAddMangaFormVisible] = useState<boolean>(false)
 
@@ -51,9 +55,12 @@ export default function HomeScreen() {
             purchasedVolumes,
             totalVolumes: volumesData.length,
             coverImageUrl: manga.data().coverImageUrl,
+            bannerImgUrl: manga.data().bannerImgUrl,
           };
         })
       );
+      console.log(mangasList);
+      
       setMangaData(mangasList);
       if(firstLoad){
         setRefreshing(false)
@@ -81,6 +88,7 @@ export default function HomeScreen() {
         purchasedVolumes={item.purchasedVolumes}
         totalVolumes={item.totalVolumes}
         imageUrl={item.coverImageUrl}
+        bannerImgUrl={item.bannerImgUrl}
       />
     );
   };
@@ -91,7 +99,7 @@ export default function HomeScreen() {
     <GestureHandlerRootView>
       <View style={styles.container}>
         <FlatList
-          data={mangaData || skeletonData} 
+          data={mangas || skeletonData} 
           renderItem={renderItem}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={() => fetchMangas(false)}/>
@@ -103,8 +111,6 @@ export default function HomeScreen() {
         <AddMangaForm 
         visible={addMangaFormVisible}
         setVisible={setAddMangaFormVisible}
-        mangaData={mangaData}
-        setMangaData={setMangaData}
         />
       </View>
     </GestureHandlerRootView>

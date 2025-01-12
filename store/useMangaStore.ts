@@ -6,18 +6,19 @@ interface Manga {
     purchasedVolumes: number;
     totalVolumes: number;
     coverImageUrl: string;
+    bannerImgUrl: string;
 }
 
 interface MangaStore {
     mangas: Manga[]; 
-    setOriginAddress: (mangasData: Manga[]) => void;
+    setMangaData: (mangasData: Manga[]) => void;
     addManga: (mangaData: Manga) => void;
 }
 
-export const useGuideStore = create<MangaStore>((set) => ({
+export const useMangaStore = create<MangaStore>((set) => ({
     mangas: [], 
 
-    setOriginAddress: (mangasData: Manga[]) => set({ mangas: mangasData }),
+    setMangaData: (mangasData: Manga[]) => set({ mangas: mangasData }),
 
     addManga: (mangaData: Manga) =>
         set((state) => ({

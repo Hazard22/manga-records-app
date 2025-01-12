@@ -1,4 +1,5 @@
 import { db } from '@/services/firebaseConfig';
+import { useMangaDetailsStore } from '@/store/useMangaDetailsStore';
 import { doc, updateDoc } from 'firebase/firestore';
 import React, { useState } from 'react'
 import { StyleSheet } from 'react-native'
@@ -13,6 +14,8 @@ type Volume = {
 
 export default function MangaVolumeCard({ volumenId, imageUrl, available, bought } : Volume) {
 
+    const { updateVolume } = useMangaDetailsStore()
+
     const [availableState, setAvaliableState] = useState<boolean>(available)
     const [boughtState, setBoughtState] = useState<boolean>(bought)
     const [loadingAvailable, setLoadingAvailable] = useState<boolean>(false)
@@ -23,6 +26,7 @@ export default function MangaVolumeCard({ volumenId, imageUrl, available, bought
         setLoadingAvailable(true)
         try {
             const documentRef = doc(db, "volume", volumenId);
+            const newAvailable = !availableState
             if(!availableState){
                 await updateDoc(documentRef, {
                     available: !availableState,
@@ -34,9 +38,9 @@ export default function MangaVolumeCard({ volumenId, imageUrl, available, bought
                     bought: false
                 });
                 setBoughtState(false)
+                updateVolume(volumenId, { available: newAvailable, bought: false })
             }
             setAvaliableState(!availableState)
-            console.log("Documento actualizado correctamente");
         } catch (error) {
             console.error("Error actualizando el documento:", error);
         }
@@ -46,12 +50,13 @@ export default function MangaVolumeCard({ volumenId, imageUrl, available, bought
     const handleBought = async () => {  
         setLoadingBought(true)
         try {
+            const newBought = !boughtState
             const documentRef = doc(db, "volume", volumenId);
             await updateDoc(documentRef, {
                 bought: !boughtState,
             });
             setBoughtState(!boughtState)
-            console.log("Documento actualizado correctamente");
+            updateVolume(volumenId, { bought: newBought })
         } catch (error) {
             console.error("Error actualizando el documento:", error);
         }
@@ -60,7 +65,7 @@ export default function MangaVolumeCard({ volumenId, imageUrl, available, bought
 
     return (
         <Card style={styles.card}>
-            <Card.Cover source={{uri: imageUrl}}/>
+            <Card.Cover source={{uri: imageUrl}} style={!availableState && styles.grayFilter}/>
             <Card.Actions style={styles.cardActions}>
                 <IconButton 
                 disabled={!availableState}
@@ -80,10 +85,13 @@ export default function MangaVolumeCard({ volumenId, imageUrl, available, bought
 
 const styles = StyleSheet.create({
     card: {
-        width: 160,
-        height: 200,
+        width: 130,
+        height: 180,
         borderRadius: 8,
         marginBottom: 5,
+    },
+    grayFilter: {
+        tintColor: 'gray'
     },
     cardActions: {
         alignItems: 'center',

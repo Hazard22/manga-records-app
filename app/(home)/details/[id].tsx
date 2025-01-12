@@ -2,47 +2,49 @@ import MangaVolumeCardSkeleton from '@/components/MangaVolumeCardSkeleton'
 import MangaDetailsBanner from '@/components/MangaDetailsBanner'
 import MangaVolumeCard from '@/components/MangaVolumeCard'
 import { db } from '@/services/firebaseConfig'
-import { useLocalSearchParams } from 'expo-router'
+import { Stack, useLocalSearchParams } from 'expo-router'
 import { collection, doc, getDocs, orderBy, query, where } from 'firebase/firestore'
 import React, { useEffect, useState } from 'react'
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { FAB } from 'react-native-paper'
 import AddVolumeForm from '@/components/AddVolumeForm'
+import { useMangaDetailsStore } from '@/store/useMangaDetailsStore'
 
-type Volume = {
-    id: string;
-    //title: string;
+interface Volume {
+    id: string,
+    title: string,
     imageUrl: string;
-    bought: boolean;
     available: boolean;
-    volume: number;
+    bought: boolean;
 }
 
 export default function MangaDetailsScreen() {
 
-    const { id, title, purchasedVolumes, totalVolumes } = useLocalSearchParams()
+    const { id } = useLocalSearchParams()
 
-    const [volumesData, setVolumesData] = useState<Volume[] | null>(null);
+    const { manga, setVolumes } = useMangaDetailsStore()
+
     const [addVolumeFormVisible, setAddVolumeFormVisible] = useState<boolean>(false)
 
     const searchRelatedVolumes = async () => {  
         try {
-            const mangaDocRef = doc(db, 'manga', id)
+            const mangaDocRef = doc(db, 'manga', id as string)
             const q = query(
                 collection(db, 'volume'), 
                 where('mangaId', '==', mangaDocRef), 
                 orderBy('volume', 'asc')
             );
             const querySnapshot = await getDocs(q);
-            const volumesData: Volume[] = querySnapshot.docs.map((doc: any) => ({
-            id: doc.id,
-            imageUrl: doc.data().imageUrl,
-            volume: doc.data().volume,
-            available: doc.data().available,
-            bought: doc.data().bought,
+            const volumesData: Volume[] = querySnapshot.docs.map((doc) => ({
+                id: doc.id, 
+                title: doc.data().title as string,
+                imageUrl: doc.data().imageUrl as string,
+                volumenId: doc.data().volumenId as string, 
+                available: doc.data().available as boolean,
+                bought: doc.data().bought as boolean,
             }));
-            console.log(volumesData);
-            setVolumesData(volumesData)
+            //console.log(volumesData);
+            setVolumes(volumesData)
         } catch (error) {
             console.log(error);
         }
@@ -75,19 +77,22 @@ export default function MangaDetailsScreen() {
     const skeletonData = Array(9).fill(null);
 
     return (
-        <View style={styles.container}>
-            <MangaDetailsBanner title={title} purchasedVolumes={purchasedVolumes} totalVolumes={totalVolumes}/>
-            <FlatList
-            data={volumesData || skeletonData}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => (item ? item.id : `skeleton-${index}`)}
-            numColumns={3}
-            columnWrapperStyle={styles.row}
-            style={styles.list}
-            />
-            <FAB icon="plus" style={styles.fab} onPress={handlePress} />
-            <AddVolumeForm mangaId={id} visible={addVolumeFormVisible} setVisible={setAddVolumeFormVisible}/>
-        </View>
+        <>
+            <Stack.Screen options={{title: manga?.title}}/>
+            <View style={styles.container}>
+                <MangaDetailsBanner />
+                <FlatList
+                data={manga?.volumes || skeletonData}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => (item ? item.id : `skeleton-${index}`)}
+                numColumns={3}
+                columnWrapperStyle={styles.row}
+                style={styles.list}
+                />
+                <FAB icon="plus" style={styles.fab} onPress={handlePress} />
+                <AddVolumeForm visible={addVolumeFormVisible} setVisible={setAddVolumeFormVisible}/>
+            </View>
+        </>
     )
 }
 
@@ -96,10 +101,10 @@ const styles = StyleSheet.create({
         flex: 1, 
     },
     row: {
-        justifyContent: 'space-between', // Alinea los ítems en cada fila
+        justifyContent: 'space-between', 
     },
     list: {
-        marginTop: 10,
+        marginTop: 5,
         padding: 10,
     },
     fab: {

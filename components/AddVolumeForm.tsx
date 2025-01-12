@@ -1,16 +1,26 @@
 import { db } from '@/services/firebaseConfig';
+import { useMangaDetailsStore } from '@/store/useMangaDetailsStore';
 import { addDoc, collection, doc } from 'firebase/firestore';
 import React, { Dispatch, SetStateAction, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { Button, Modal, Portal, Switch, TextInput } from 'react-native-paper'
 
 type ModalProps = {
-    mangaId: string;
     visible: boolean,
     setVisible: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function AddVolumeForm({ mangaId, visible, setVisible } : ModalProps ) {
+interface Volume {
+    id: string;
+    title: string;
+    imageUrl: string;
+    available: boolean;
+    bought: boolean;
+}
+
+export default function AddVolumeForm({ visible, setVisible } : ModalProps ) {
+
+    const { manga, addVolume } = useMangaDetailsStore()
 
     const [title, setTitle] = useState("")
     const [imageUrl, setImageUrl] = useState("")
@@ -23,15 +33,28 @@ export default function AddVolumeForm({ mangaId, visible, setVisible } : ModalPr
     const sendDataToInsert = async () => {  
         setCreating(true)
         try {
-            const mangaDocRef = doc(db, "manga", mangaId);
-            await addDoc(collection(db, "volume"), {
-                mangaId: mangaDocRef,
-                title,
-                imageUrl,
-                volume,
-                bought,
-                available
-            })
+            if(manga){
+                const mangaDocRef = doc(db, "manga", manga.id);
+                const docRef = await addDoc(collection(db, "volume"), {
+                    mangaId: mangaDocRef,
+                    title,
+                    imageUrl,
+                    volume,
+                    bought,
+                    available
+                })
+                const newVolume: Volume = {
+                    id: docRef.id,
+                    title,
+                    imageUrl,
+                    available,
+                    bought
+                }
+                addVolume(newVolume)
+            }
+            else{
+                throw new Error('No manga selected')
+            }
         } catch (error) {
             console.log(error);
         }
@@ -92,6 +115,7 @@ export default function AddVolumeForm({ mangaId, visible, setVisible } : ModalPr
 
 const styles = StyleSheet.create({
     content: {
+        backgroundColor: 'rgb(77, 67, 87)',
         borderRadius: 10,
         padding: 20,
         width: '80%',
@@ -106,6 +130,7 @@ const styles = StyleSheet.create({
     formTitle: {
         fontSize: 32,
         marginBottom: 15,
+        color: 'white',
     },
     input: {
         marginBottom: 15, 
